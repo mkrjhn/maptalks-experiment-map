@@ -27,7 +27,15 @@ module.exports = {
     indent: ['error', 2],
     'comma-dangle': ['error', 'never'],
     'brace-style': ['error', '1tbs'],
-    'space-before-function-paren': ['error', 'never'],
+    // 'space-before-function-paren': ['error', 'ignore'],
+    'space-before-function-paren': [
+      'error',
+      {
+        anonymous: 'always',
+        named: 'never',
+        asyncArrow: 'always'
+      }
+    ],
     'vue/script-indent': [
       'error',
       2,
