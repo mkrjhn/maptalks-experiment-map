@@ -1,15 +1,14 @@
 import { Map, TileLayer, LineString } from 'maptalks'
-import { ThreeLayer } from 'maptalks.three'
+import { ThreeLayer, LineMaterial } from 'maptalks.three'
 import {
   DirectionalLight,
   AmbientLight,
   MeshPhongMaterial,
-  LineBasicMaterial,
   MeshBasicMaterial,
-  AxesHelper,
-  Vector2
+  AxesHelper
 } from 'three'
-import { MeshLine, MeshLineMaterial } from 'three.meshline'
+// import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial'
+// import { debounce } from 'lodash'
 
 class DeferredPromise {
   constructor() {
@@ -39,6 +38,8 @@ export default class ThreeMap {
 
     this.extrudePolygons = null
     this.extrudePolygonsFlat = null
+
+    this._focusedAreas = []
   }
 
   get mapCenter() {
@@ -75,7 +76,6 @@ export default class ThreeMap {
   }
 
   addThreeLayer() {
-    console.log('add layer')
     const resolver = new DeferredPromise()
     const mapCenter = this.mapCenter
     let threeLayer
@@ -126,12 +126,12 @@ export default class ThreeMap {
     })
   }
 
-  drawPolygons(geojson) {
+  drawAreas(geojson) {
     this.extrudePolygons = this.getExtrudePolygons(geojson)
 
     this.threeLayer.addMesh(
       this.extrudePolygons.reduce((acc, e) => {
-        acc.push(e.poly, ...e.polyLines)
+        acc.push(e.poly, e.polyLine)
         return acc
       }, [])
     )
@@ -142,15 +142,55 @@ export default class ThreeMap {
   }
 
   on(event, callback) {
-    this.extrudePolygons.forEach((e) => {
-      e.poly.on(event, function () {
-        callback(e)
+    // const throttledCb = debounce(callback, 200, { trailing: true })
+
+    this.extrudePolygons.forEach((area) => {
+      area.poly.on(event, () => {
+        // console.log(e)
+        // if (!e.coordinate)
+
+        // const intersects = e.coordinate
+        //   ? this.threeLayer.identify(e.coordinate, { count: 10 })
+        //   : []
+        // console.log(intersects, event)
+        // if (intersects.length > 1) return
+        // if (event === 'mouseout' && intersects.length) {
+        //   intersects[0].fire('mouseover')
+        //   return
+        // }
+
+        // switch (event) {
+        //   case 'mouseover':
+        //     if (intersects.length) intersects[0].fire('mouseover')
+        //     else throttledCb(area)
+        //     break
+        //   case 'mouseout':
+        //     callback(area)
+        // }
+
+        callback(area)
+
+        // console.log(e)
+        // console.log(this.threeLayer.identify(e.coordinate, { count: 10 }))
       })
     })
 
     return this
   }
 }
+
+const AREA_MATERIAL = new MeshPhongMaterial({ color: 'aqua' })
+const AREA_LINE_MATERIAL = new LineMaterial({
+  color: '#000',
+  linewidth: 1,
+  opacity: 1,
+  // worldUnits: false,
+  polygonOffset: true,
+  polygonOffsetFactor: -3
+})
+const AREA_HIGHLIGHT_MATERIAL = new MeshBasicMaterial({
+  color: 'yellow'
+})
 
 class ThreeMapArea {
   constructor(feature, threeLayer, options) {
@@ -162,24 +202,12 @@ class ThreeMapArea {
       ...options
     }
 
-    this.resolution = new Vector2(window.innerWidth, window.innerHeight)
-    this.material = new MeshPhongMaterial({})
-    this.lineMaterial = new MeshLineMaterial({
-      color: '#000',
-      lineWidth: 200,
-      resolution: this.resolution
-    })
-    this.highlightMaterial = new MeshBasicMaterial({
-      color: 'yellow',
-      transparent: true
-    })
-
-    // this.lineMaterial.resolution.set(window.innerWidth, window.innerHeight)
-
-    console.log(this.lineMaterial)
+    this.material = AREA_MATERIAL
+    this.lineMaterial = AREA_LINE_MATERIAL
+    this.highlightMaterial = AREA_HIGHLIGHT_MATERIAL
 
     this.poly = null
-    this.polyLines = null
+    this.polyLine = null
     this.scale = 1
 
     this.init()
@@ -205,44 +233,49 @@ class ThreeMapArea {
       this.feature,
       {
         height: this.options.height,
-        interactive: true,
-        topColor: this.options.color
+        interactive: true
+        // topColor: this.options.color
       },
       this.material
     )
 
-    this.polyLines = lines.map((lineString) => {
-      return this.threeLayer.toLine(
-        lineString,
-        { altitude: this.options.height, interactive: false },
-        this.lineMaterial
-      )
-    })
+    this.polyLine = this.threeLayer.toFatLines(
+      lines,
+      {
+        altitude: this.options.height + 1,
+        interactive: false
+      },
+      this.lineMaterial
+    )
+  }
+
+  animateScale(scale) {
+    this.scale = scale
+    this.object3d.scale.set(1, 1, scale)
+    this.polyLine.setAltitude(scale * 1000 + 1)
   }
 
   animateMouseOver() {
-    this.scale += 0.1
-    this.object3d.scale.set(1, 1, this.scale)
+    const scale = this.scale + 0.1
 
-    this.polyLines.forEach((e) => {
-      e.setAltitude(this.scale * 1000)
-    })
+    if (scale >= 2) {
+      this.animateScale(2)
+      return
+    }
 
-    if (this.scale >= 1.5) return
-
+    this.animateScale(scale)
     requestAnimationFrame(this.animateMouseOver.bind(this))
   }
 
   animateMouseOut() {
-    this.scale -= 0.1
-    this.object3d.scale.set(1, 1, this.scale)
+    const scale = this.scale - 0.1
 
-    this.polyLines.forEach((e) => {
-      e.setAltitude(this.scale * 1000)
-    })
+    if (scale <= 1) {
+      this.animateScale(1)
+      return
+    }
 
-    if (this.scale <= 1) return
-
+    this.animateScale(scale)
     requestAnimationFrame(this.animateMouseOut.bind(this))
   }
 

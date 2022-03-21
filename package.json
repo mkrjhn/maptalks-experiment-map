@@ -13,7 +13,7 @@
   "dependencies": {
     "lodash": "^4.17.21",
     "maptalks": "^1.0.0-rc.2",
-    "maptalks.three": "^0.20.3",
+    "maptalks.three": "^0.22.1",
     "three": "^0.138.3",
     "three.meshline": "^1.4.0",
     "vue": "^3.2.31"

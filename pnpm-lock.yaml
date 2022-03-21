@@ -12,7 +12,7 @@ specifiers:
   jsdom: ^19.0.0
   lodash: ^4.17.21
   maptalks: ^1.0.0-rc.2
-  maptalks.three: ^0.20.3
+  maptalks.three: ^0.22.1
   prettier: ^2.5.1
   sass: ^1.49.9
   start-server-and-test: ^1.14.0
@@ -25,7 +25,7 @@ specifiers:
 dependencies:
   lodash: 4.17.21
   maptalks: 1.0.0-rc.2
-  maptalks.three: 0.20.3
+  maptalks.three: 0.22.1
   three: 0.138.3
   three.meshline: 1.4.0
   vue: 3.2.31
@@ -1925,8 +1925,8 @@ packages:
     resolution: {integrity: sha1-5WqpTEyAVaFkBKBnS3jyFffI4ZQ=}
     dev: true
 
-  /maptalks.three/0.20.3:
-    resolution: {integrity: sha512-Hsxe/Xvm7kU8y9c63NFLXyQcDolDoXfclGpi3ZLOA/63FlyxV+iq7FaI4jFhcmLJ3zi2Wf/7sjA6cX1j5lgf4Q==}
+  /maptalks.three/0.22.1:
+    resolution: {integrity: sha512-ZIkb6hvzqhdiZl1YWWstuBEDl7O57oInBlLR2Ito3LWNZ/tDebYppGC+LNKDv1pelhwVpyfRGUZseHvF/xMVwQ==}
     dependencies:
       deyihu-geometry-extrude: 0.1.10
     dev: false

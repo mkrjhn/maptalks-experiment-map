@@ -24,7 +24,10 @@
 
       map.init().then((map) => {
         map
-          .drawPolygons(this.geojson)
+          .drawAreas(this.geojson)
+          .on('add', (area) => {
+            console.log(area)
+          })
           .on('mouseover', (area) => {
             area.highlight()
             area.animateMouseOver()
